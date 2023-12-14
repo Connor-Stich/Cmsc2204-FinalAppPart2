@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:stich_finalappproject/Models/Team.dart';
+//import 'package:stich_finalappproject/Models/Team.dart';
 import 'package:stich_finalappproject/Repositories/DataService.dart';
-//import 'package:stich_finalapp/Models/LoginStructure.dart';
+import 'package:stich_finalappproject/Repositories/UserClient.dart';
 import 'package:stich_finalappproject/aboutPage.dart';
+import 'package:stich_finalappproject/itemList.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,13 +21,14 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Stich Mobile App'),
+      home: MyHomePage(title: 'Stich Mobile App'),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+  final UserClient userClient = UserClient();
+  MyHomePage({super.key, required this.title});
 
   final String title;
 
@@ -34,22 +38,29 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  final DataService dataService = DataService();
+  DataService dataService = DataService();
 
   var usernameController = new TextEditingController();
   var passwordController = new TextEditingController();
 
+  var teams = new List.empty(growable: true);
+
   void onLoginButtonPress () {
     setState(() {
-      final username = usernameController.text;
-      final password = passwordController.text;
+      var username = usernameController.text;
+      var password = passwordController.text;
 
       if (username == dataService.usernameKey && password == dataService.passwordKey) {
+        /*
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Login Success"),
           ),
         );
+        */
+        setState(() {
+          widget.userClient.GetTeamsAsync().then((response) => onGetTeamsSuccess(response));
+         });
       }
       else {
         if (username != dataService.usernameKey && password == dataService.passwordKey)  {
@@ -77,6 +88,15 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  void onGetTeamsSuccess(List<NBATeam>? teams) 
+  {
+    setState(() {
+      if(teams != null) {
+        Navigator.push(context, MaterialPageRoute(builder: (context) => itemList(inTeams: teams)));
+      }
+    });
+  }
+
   void onAboutButtonPress () {
     Navigator.push(
                   context,
@@ -98,7 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             Column(
               children: [
-                Text("Please Sign In"),
+                Text("Please Sign In", style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),),
                 Row(
                   children: [
                     Expanded(
